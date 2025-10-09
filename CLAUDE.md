@@ -81,26 +81,53 @@ Each plugin requires a manifest at `config/plugins/{vendor}/{name}/{version}/man
 
 ### Key Classes
 
-- **`PluginWorkflow`** - Central orchestration of plugin installation
-  - `prepare()` - Composer operations, stability, repositories
-  - `install()` - Manifest processing, configurators execution
-- **`PluginCatalog`** - Plugin discovery from manifest files
-- **`ConfigTrait`** - Shared configuration reading logic
-- **`PluginDefinition`** - Plugin metadata container
+**Domain-Driven Architecture:**
 
-### Command Architecture Patterns
+- **Plugin Domain** (`src/Plugin/`):
+  - `PluginWorkflowOrchestrator` - Step-based workflow orchestration
+  - `PluginCatalog` - Plugin discovery from manifest files
+  - `PluginDefinition` - Plugin metadata container
+  - `Command/` - Public CLI commands (InstallInteractiveCommand, ListCommand, etc.)
+  - `Step/` - Individual workflow steps (14 steps implementing PrepareStepInterface/InstallStepInterface)
+  - `Service/` - Helper services (PluginDefinitionResolver, ComposerMetadataResolver)
+  - `Workflow/` - Workflow infrastructure (orchestrator, registry, loader, context)
 
-**Common Logic Pattern** across `PluginInstallCommand`, `PluginPrepareCommand`, `PluginInstallInteractiveCommand`:
+- **StorePreset Domain** (`src/StorePreset/`):
+  - `ConfigurationProviderInterface` - Configuration abstraction
+  - `Provider/StorePresetConfigurationProvider` - Reads from store-preset.json
 
-1. **Configuration Reading**: Uses `ConfigTrait.getPlugins()` to read from store-preset
-2. **Workflow Delegation**: Delegates to `PluginWorkflow.prepare()` or `PluginWorkflow.install()`
-3. **Error Handling**: Consistent RuntimeException catching and user messaging
+- **Fixture Domain** (`src/Fixture/`):
+  - `Command/PrepareCommand` - Fixture preparation
+  - `Command/LoadCommand` - Fixture loading
 
-**Potential Refactoring Opportunities**:
-- Extract `AbstractPluginCommand` base class
-- Centralize configuration logic in `ConfigurationManager`
-- Create `ComposerManager` for package operations
-- Separate `ManifestProcessor` for manifest handling
+- **Theme Domain** (`src/Theme/`):
+  - `Command/PrepareCommand` - Theme asset copying and configuration
+
+### Workflow Architecture
+
+**Step-Based Orchestration** (YAML-configured):
+
+Workflow definitions in `config/workflow/{platform}.yaml`:
+```yaml
+platform: platform_sh
+prepare:
+  - sylius_store_assembler.plugin.step.adjust_composer_stability
+  - sylius_store_assembler.plugin.step.configure_composer_repository
+  - sylius_store_assembler.plugin.step.install_open_source_plugins
+  - sylius_store_assembler.plugin.step.install_paid_plugins
+  - sylius_store_assembler.plugin.step.process_rector_config
+install:
+  - sylius_store_assembler.plugin.step.validate_manifests
+  - sylius_store_assembler.plugin.step.execute_shell_commands
+  - sylius_store_assembler.plugin.step.run_configurators
+```
+
+**Key Components:**
+- `WorkflowDefinitionLoader` - Loads YAML workflow definitions
+- `WorkflowDefinitionRegistry` - Platform-specific workflow registry
+- `WorkflowDefinitionPass` - Compiler pass validating step services
+- `StepContext` - Shared data container passed between steps
+- Service locator for dynamic step resolution
 
 ### Store Assembly Process
 
@@ -117,14 +144,58 @@ The full store assembly follows this sequence:
    - Schema updates
    - Fixture loading
 
-### Bundle Structure
+### Bundle Structure (Domain-Driven)
 
-- **Commands**: Console commands for plugin/fixture/theme operations
-- **Plugin**: Core plugin management (catalog, workflow, definitions)
-- **Configurator**: Plugin configuration application
-- **Message/MessageHandler**: Async plugin installation support
-- **Service**: Installation state management
-- **Util**: Utility classes (manifest location)
+```
+src/
+├── Plugin/                          # Plugin installation domain
+│   ├── Command/                     # Public CLI commands
+│   │   ├── InstallCommand.php
+│   │   ├── InstallInteractiveCommand.php
+│   │   ├── ListCommand.php
+│   │   └── PrepareCommand.php
+│   ├── Service/                     # Domain services
+│   │   ├── ComposerMetadataResolver.php
+│   │   └── PluginDefinitionResolver.php
+│   ├── Step/                        # Workflow steps (14 steps)
+│   │   ├── PrepareStepInterface.php
+│   │   ├── InstallStepInterface.php
+│   │   ├── AbstractPluginDefinitionsStep.php
+│   │   └── ...individual steps...
+│   ├── Workflow/                    # Workflow orchestration
+│   │   ├── PluginWorkflowOrchestrator.php
+│   │   ├── WorkflowDefinitionLoader.php
+│   │   ├── WorkflowDefinitionRegistry.php
+│   │   ├── StepContext.php
+│   │   └── WorkflowPhase.php
+│   ├── B2BKitSupport.php
+│   ├── PluginCatalog.php
+│   └── PluginDefinition.php
+├── StorePreset/                     # Configuration domain
+│   ├── Provider/
+│   │   └── StorePresetConfigurationProvider.php
+│   └── ConfigurationProviderInterface.php
+├── Fixture/                         # Fixtures domain
+│   └── Command/
+│       ├── LoadCommand.php
+│       └── PrepareCommand.php
+├── Theme/                           # Theme domain
+│   └── Command/
+│       └── PrepareCommand.php
+├── Configurator/                    # Plugin configurators
+│   └── YamlNodeConfigurator.php
+├── DependencyInjection/
+│   └── Compiler/
+│       └── WorkflowDefinitionPass.php
+├── Message/                         # Async support
+│   └── InstallPlugin.php
+├── MessageHandler/
+│   └── InstallPluginMessageHandler.php
+├── Service/
+│   └── InstallationStateManager.php
+└── Util/
+    └── ManifestLocator.php
+```
 
 ### Development Notes
 
@@ -134,72 +205,46 @@ The full store assembly follows this sequence:
 - Integrates with Rector for automated code updates
 - Messenger integration for async plugin installation
 
-## Refactoring Recommendations
+## Architecture Benefits
 
-### Current Architecture Issues
+### Step-Based Workflow System
 
-1. **PluginWorkflow is monolithic**:
-   - `prepare()` method: 257 lines mixing Composer, Rector, repositories
-   - `install()` method: 70+ lines handling manifests and configurators
-   - Multiple responsibilities in single class
+The implemented step-based architecture provides:
 
-2. **ConfigTrait anti-pattern**:
-   - Mixes configuration reading with business logic
-   - Hardcoded coupling to `store-preset.json`
-   - Difficult to test and extend
+- **Single Responsibility**: Each step handles one specific task (e.g., AdjustComposerStabilityStep, InstallPaidPluginsStep)
+- **YAML Configuration**: Workflows defined in `config/workflow/{platform}.yaml` - easy to customize per deployment platform
+- **Validation**: Compiler pass validates all step service IDs at container compile time
+- **Extensibility**: Add new steps without modifying existing code - just update YAML
+- **Debugging**: Clear boundaries for error identification - each step is isolated
+- **Reusability**: Steps can be shared across different workflow configurations
+- **Testability**: Easy to mock and unit test individual steps
 
-### Proposed Step-Based Workflow (GitHub Actions-like)
+### Configuration Provider Pattern
 
-Replace monolithic `PluginWorkflow` with step-based orchestrator:
-
-```php
-interface WorkflowStepInterface
-{
-    public function getName(): string;
-    public function execute(StepContext $context): StepResult;
-    public function canRun(StepContext $context): bool;
-}
-
-class PluginWorkflowOrchestrator
-{
-    private const PREPARE_STEPS = [
-        AdjustComposerStabilityStep::class,
-        ConfigureComposerRepositoryStep::class,
-        InstallOpenSourcePluginsStep::class,
-        InstallPaidPluginsStep::class,
-        ProcessRectorConfigStep::class,
-    ];
-    
-    private const INSTALL_STEPS = [
-        ValidateManifestsStep::class,
-        ExecuteShellCommandsStep::class,
-        RunConfiguratorsStep::class,
-    ];
-}
-```
-
-### Replace ConfigTrait with Configuration Provider
+Replaced `ConfigTrait` anti-pattern with proper dependency injection:
 
 ```php
 interface ConfigurationProviderInterface
 {
     public function getPlugins(): array;
     public function getThemes(): array;
-    public function getFixtures(): array;
-}
-
-class StorePresetConfigurationProvider implements ConfigurationProviderInterface
-{
-    // Clean separation of concerns
-    // Easy to add DatabaseConfigurationProvider, YamlConfigurationProvider
+    public function getFixturesFilePath(): string;
+    public function getFixturesSuiteName(): string;
 }
 ```
 
-### Benefits of Step-Based Architecture
+Benefits:
+- Clean separation of concerns
+- Easy to add alternative providers (DatabaseConfigurationProvider, YamlConfigurationProvider)
+- Proper dependency injection - commands receive provider via constructor
+- Testable - mock the interface in tests
 
-- **Single Responsibility**: Each step has one clear purpose
-- **Testability**: Easy to mock and unit test individual steps
-- **Conditional Execution**: `canRun()` allows for smart step skipping
-- **Extensibility**: Add new steps without modifying existing code
-- **Debugging**: Clear boundaries for error identification
-- **Reusability**: Steps can be reused across different workflows
+### Workflow Step Interfaces
+
+Three-tier interface hierarchy:
+
+1. `WorkflowStepInterface` - Base interface with `getName()` and `execute()`
+2. `PrepareStepInterface extends WorkflowStepInterface` - For prepare phase steps
+3. `InstallStepInterface extends WorkflowStepInterface` - For install phase steps
+
+This allows type-safe step validation at compile time via `WorkflowDefinitionPass`.
