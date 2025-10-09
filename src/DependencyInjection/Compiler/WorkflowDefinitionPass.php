@@ -66,7 +66,7 @@ final class WorkflowDefinitionPass implements CompilerPassInterface
         }
 
         $locatorId = ServiceLocatorTagPass::register($container, $references);
-        $container->setAlias('sylius_store_assembler.plugin.workflow.step_locator', $locatorId)->setPublic(false);
+        $container->setAlias('sylius_store_assembler.plugin.workflow.step_locator', (string) $locatorId)->setPublic(false);
     }
 
     private function assertServiceImplements(

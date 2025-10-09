@@ -21,7 +21,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
     name: 'sylius:plugins:install',
     description: 'Browse the plugin catalog and install selected plugins interactively',
 )]
-final class PluginInstallInteractiveCommand extends Command
+final class InstallInteractiveCommand extends Command
 {
     public function __construct(
         private readonly PluginCatalog $catalog,

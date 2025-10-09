@@ -18,7 +18,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     name: 'sylius:plugins:list',
     description: 'List plugins bundled with Sylius Store Assembler',
 )]
-final class PluginListCommand extends Command
+final class ListCommand extends Command
 {
     public function __construct(private readonly PluginCatalog $catalog)
     {
