@@ -267,19 +267,10 @@ final class PluginInstallInteractiveCommand extends Command
             ->mustRun(static fn ($type, $buffer) => $output->write($buffer));
 
         $io->section('Clearing and warming up cache');
-        // Safer cache reload to avoid invalidating the running container
-        $clearPools = new \Symfony\Component\Process\Process([
-            'php', 'bin/console', 'cache:pool:clear', 'cache.global_clearer', '--ansi',
+        $clear = new \Symfony\Component\Process\Process([
+            'php', 'bin/console', 'cache:clear', '--ansi',
         ], $this->projectDir);
-        $clearPools
-            ->setTty(\Symfony\Component\Process\Process::isTtySupported())
-            ->setTimeout(0)
-            ->mustRun(static fn ($type, $buffer) => $output->write($buffer));
-
-        $warmup = new \Symfony\Component\Process\Process([
-            'php', 'bin/console', 'cache:warmup', '--ansi',
-        ], $this->projectDir);
-        $warmup
+        $clear
             ->setTty(\Symfony\Component\Process\Process::isTtySupported())
             ->setTimeout(0)
             ->mustRun(static fn ($type, $buffer) => $output->write($buffer));
