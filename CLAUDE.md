@@ -71,7 +71,7 @@ Each plugin requires a manifest at `config/plugins/{vendor}/{name}/{version}/man
 
 ```json
 {
-  "type": "open-source|paid",
+  "type": "community|commercial",
   "minimum-stability": "dev",
   "rector-sets": ["Sylius\\SyliusRector\\Set\\..."],
   "steps": ["shell command"],
@@ -113,8 +113,8 @@ platform: platform_sh
 prepare:
   - sylius_store_assembler.plugin.step.adjust_composer_stability
   - sylius_store_assembler.plugin.step.configure_composer_repository
-  - sylius_store_assembler.plugin.step.install_open_source_plugins
-  - sylius_store_assembler.plugin.step.install_paid_plugins
+  - sylius_store_assembler.plugin.step.install_community_plugins
+  - sylius_store_assembler.plugin.step.install_commercial_plugins
   - sylius_store_assembler.plugin.step.process_rector_config
 install:
   - sylius_store_assembler.plugin.step.validate_manifests
@@ -201,7 +201,7 @@ src/
 
 - All classes marked `@experimental` - API may change
 - Uses Symfony Process component for shell command execution
-- Supports both open-source and paid plugins with repository authentication
+- Supports both community and commercial plugins with repository authentication
 - Integrates with Rector for automated code updates
 - Messenger integration for async plugin installation
 

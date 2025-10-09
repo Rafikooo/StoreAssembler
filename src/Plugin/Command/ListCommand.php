@@ -28,7 +28,7 @@ final class ListCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('type', null, InputOption::VALUE_REQUIRED, 'Filter by type (open-source or paid)')
+            ->addOption('type', null, InputOption::VALUE_REQUIRED, 'Filter by type (community or commercial)')
             ->addOption('all-versions', null, InputOption::VALUE_NONE, 'Display every available version instead of the latest per package')
         ;
     }
@@ -52,8 +52,8 @@ final class ListCommand extends Command
                 static fn (PluginDefinition $definition) => $definition->type() === $normalizedType,
             );
 
-            if (!in_array($normalizedType, ['paid', 'open-source'], true)) {
-                $io->error('Invalid type filter, use "open-source" or "paid".');
+            if (!in_array($normalizedType, ['commercial', 'community'], true)) {
+                $io->error('Invalid type filter, use "community" or "commercial".');
 
                 return Command::INVALID;
             }

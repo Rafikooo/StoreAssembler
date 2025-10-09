@@ -17,8 +17,8 @@ use Sylius\StoreAssemblerBundle\Plugin\Service\PluginDefinitionResolver;
 use Sylius\StoreAssemblerBundle\Plugin\Step\AdjustComposerStabilityStep;
 use Sylius\StoreAssemblerBundle\Plugin\Step\ConfigureComposerRepositoryStep;
 use Sylius\StoreAssemblerBundle\Plugin\Step\ExecuteShellCommandsStep;
-use Sylius\StoreAssemblerBundle\Plugin\Step\InstallOpenSourcePluginsStep;
-use Sylius\StoreAssemblerBundle\Plugin\Step\InstallPaidPluginsStep;
+use Sylius\StoreAssemblerBundle\Plugin\Step\InstallCommunityPluginsStep;
+use Sylius\StoreAssemblerBundle\Plugin\Step\InstallCommercialPluginsStep;
 use Sylius\StoreAssemblerBundle\Plugin\Step\ProcessRectorConfigStep;
 use Sylius\StoreAssemblerBundle\Plugin\Step\RunConfiguratorsStep;
 use Sylius\StoreAssemblerBundle\Plugin\Step\ValidateManifestsStep;
@@ -131,7 +131,7 @@ return static function (ContainerConfigurator $container): void {
     ;
 
     $services
-        ->set('sylius_store_assembler.plugin.step.install_open_source_plugins', InstallOpenSourcePluginsStep::class)
+        ->set('sylius_store_assembler.plugin.step.install_community_plugins', InstallCommunityPluginsStep::class)
         ->args([
             service('sylius_store_assembler.plugin.composer_metadata_resolver'),
             '%kernel.project_dir%',
@@ -140,7 +140,7 @@ return static function (ContainerConfigurator $container): void {
     ;
 
     $services
-        ->set('sylius_store_assembler.plugin.step.install_paid_plugins', InstallPaidPluginsStep::class)
+        ->set('sylius_store_assembler.plugin.step.install_commercial_plugins', InstallCommercialPluginsStep::class)
         ->args([
             service('sylius_store_assembler.plugin.composer_metadata_resolver'),
             '%kernel.project_dir%',

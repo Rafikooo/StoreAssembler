@@ -22,12 +22,12 @@ final class PluginDefinition
 
     public function type(): string
     {
-        return strtolower((string) ($this->manifest['type'] ?? 'open-source'));
+        return strtolower((string) ($this->manifest['type'] ?? 'community'));
     }
 
-    public function isPaid(): bool
+    public function isCommercial(): bool
     {
-        return $this->type() === 'paid';
+        return $this->type() === 'commercial';
     }
 
     public function label(): string

@@ -25,12 +25,12 @@ final class ConfigureComposerRepositoryStep extends AbstractPluginDefinitionsSte
     public function run(StepContext $context): void
     {
         $definitions = $this->definitions($context);
-        $paid = array_filter(
+        $commercial = array_filter(
             $definitions,
-            static fn (PluginDefinition $definition): bool => $definition->isPaid(),
+            static fn (PluginDefinition $definition): bool => $definition->isCommercial(),
         );
 
-        if ($paid === []) {
+        if ($commercial === []) {
             return;
         }
 
@@ -74,7 +74,7 @@ final class ConfigureComposerRepositoryStep extends AbstractPluginDefinitionsSte
         $io->section('[Plugin Preparer] Verifying access (dry‑run)');
         $stabilityFlags = $this->composerMetadataResolver->collectStabilityFlags($definitions);
 
-        foreach ($paid as $definition) {
+        foreach ($commercial as $definition) {
             $version = $context->plugins()[$definition->package] ?? $definition->version;
             $io->text(sprintf(' 🔍 Testing %s:%s', $definition->package, $version));
 

@@ -11,7 +11,7 @@ use Sylius\StoreAssemblerBundle\Plugin\Workflow\StepContext;
 use Symfony\Component\Process\Process;
 
 /** @experimental */
-final class InstallOpenSourcePluginsStep extends AbstractPluginDefinitionsStep implements PrepareStepInterface
+final class InstallCommunityPluginsStep extends AbstractPluginDefinitionsStep implements PrepareStepInterface
 {
     public function __construct(
         private readonly ComposerMetadataResolver $composerMetadataResolver,
@@ -25,12 +25,12 @@ final class InstallOpenSourcePluginsStep extends AbstractPluginDefinitionsStep i
     {
         $definitions = $this->definitions($context);
 
-        $openSource = array_filter(
+        $community = array_filter(
             $definitions,
-            static fn (PluginDefinition $definition): bool => !$definition->isPaid(),
+            static fn (PluginDefinition $definition): bool => !$definition->isCommercial(),
         );
 
-        if ($openSource === []) {
+        if ($community === []) {
             return;
         }
 
@@ -39,8 +39,8 @@ final class InstallOpenSourcePluginsStep extends AbstractPluginDefinitionsStep i
         $projectDir = $this->projectDir;
         $stabilityFlags = $this->composerMetadataResolver->collectStabilityFlags($definitions);
 
-        $io->section('[Plugin Preparer] Installing open-source plugins');
-        foreach ($openSource as $definition) {
+        $io->section('[Plugin Preparer] Installing community plugins');
+        foreach ($community as $definition) {
             $version = $context->plugins()[$definition->package] ?? $definition->version;
             $io->text(sprintf(' → %s:%s', $definition->package, $version));
 

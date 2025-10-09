@@ -13,7 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
 
 /** @experimental */
-final class InstallPaidPluginsStep extends AbstractPluginDefinitionsStep implements PrepareStepInterface
+final class InstallCommercialPluginsStep extends AbstractPluginDefinitionsStep implements PrepareStepInterface
 {
     public function __construct(
         private readonly ComposerMetadataResolver $composerMetadataResolver,
@@ -26,12 +26,12 @@ final class InstallPaidPluginsStep extends AbstractPluginDefinitionsStep impleme
     public function run(StepContext $context): void
     {
         $definitions = $this->definitions($context);
-        $paid = array_filter(
+        $commercial = array_filter(
             $definitions,
-            static fn (PluginDefinition $definition): bool => $definition->isPaid(),
+            static fn (PluginDefinition $definition): bool => $definition->isCommercial(),
         );
 
-        if ($paid === []) {
+        if ($commercial === []) {
             return;
         }
 
@@ -40,8 +40,8 @@ final class InstallPaidPluginsStep extends AbstractPluginDefinitionsStep impleme
         $projectDir = $this->projectDir;
         $stabilityFlags = $this->composerMetadataResolver->collectStabilityFlags($definitions);
 
-        $io->section('[Plugin Preparer] Installing paid plugins');
-        foreach ($paid as $definition) {
+        $io->section('[Plugin Preparer] Installing commercial plugins');
+        foreach ($commercial as $definition) {
             $version = $context->plugins()[$definition->package] ?? $definition->version;
             $io->text(sprintf(' → %s:%s', $definition->package, $version));
 

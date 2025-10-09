@@ -36,7 +36,7 @@ final class InstallInteractiveCommand extends Command
         $this
             ->addArgument('package', InputArgument::OPTIONAL, 'Plugin package name, e.g. sylius/cms-plugin')
             ->addOption('plugin-version', null, InputOption::VALUE_REQUIRED, 'Plugin version to install (defaults to the latest available)')
-            ->addOption('type', null, InputOption::VALUE_REQUIRED, 'Filter interactive selection by type (open-source or paid)')
+            ->addOption('type', null, InputOption::VALUE_REQUIRED, 'Filter interactive selection by type (community or commercial)')
             ->addOption('no-prepare', null, InputOption::VALUE_NONE, 'Skip Composer installation step')
             ->addOption('no-configure', null, InputOption::VALUE_NONE, 'Skip manifest configuration step')
             ->addOption('platform', null, InputOption::VALUE_REQUIRED, 'Target workflow platform (optional)')
@@ -103,7 +103,7 @@ final class InstallInteractiveCommand extends Command
                 '%s@%s (%s)',
                 $definition->package,
                 $definition->version,
-                $definition->isPaid() ? 'paid' : 'open-source'
+                $definition->isCommercial() ? 'commercial' : 'community'
             ),
             $selected
         ));
@@ -163,8 +163,8 @@ final class InstallInteractiveCommand extends Command
         $typeFilter = $typeFilter === null ? '' : trim((string) $typeFilter);
         if ($typeFilter !== '') {
             $normalized = strtolower($typeFilter);
-            if (!in_array($normalized, ['paid', 'open-source'], true)) {
-                throw new \InvalidArgumentException('Invalid type filter, use "open-source" or "paid".');
+            if (!in_array($normalized, ['commercial', 'community'], true)) {
+                throw new \InvalidArgumentException('Invalid type filter, use "community" or "commercial".');
             }
 
             $definitions = array_filter(
@@ -191,7 +191,7 @@ final class InstallInteractiveCommand extends Command
                 (string) $index,
                 $definition->package,
                 $definition->version,
-                $definition->isPaid() ? 'paid' : 'open-source',
+                $definition->isCommercial() ? 'commercial' : 'community',
                 InstalledVersions::isInstalled($definition->package) ? '✓' : '—',
             ];
         }
