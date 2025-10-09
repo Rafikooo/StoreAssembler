@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sylius\StoreAssemblerBundle\Plugin\Command;
 
+use Composer\InstalledVersions;
 use Sylius\StoreAssemblerBundle\Plugin\PluginCatalog;
 use Sylius\StoreAssemblerBundle\Plugin\PluginDefinition;
 use Sylius\StoreAssemblerBundle\Plugin\Workflow\PluginWorkflowOrchestrator;
@@ -191,11 +192,12 @@ final class PluginInstallInteractiveCommand extends Command
                 $definition->package,
                 $definition->version,
                 $definition->isPaid() ? 'paid' : 'open-source',
+                InstalledVersions::isInstalled($definition->package) ? '✓' : '—',
             ];
         }
 
         $io->section('Available plugins');
-        $io->table(['#', 'Package', 'Version', 'Type'], $rows);
+        $io->table(['#', 'Package', 'Version', 'Type', 'Status'], $rows);
 
         $answer = $io->ask('Select plugin indices (comma separated for multiple)');
         if ($answer === null || trim($answer) === '') {

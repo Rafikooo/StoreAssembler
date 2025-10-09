@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Sylius\StoreAssemblerBundle\Plugin\Command;
 
+use Composer\InstalledVersions;
 use Sylius\StoreAssemblerBundle\Plugin\PluginCatalog;
 use Sylius\StoreAssemblerBundle\Plugin\PluginDefinition;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -70,12 +71,13 @@ final class PluginListCommand extends Command
 
         $io->title('Sylius plugin catalog');
         $io->table(
-            ['Package', 'Version', 'Type', 'Highlights'],
+            ['Package', 'Version', 'Type', 'Status', 'Highlights'],
             array_map(
                 fn (PluginDefinition $definition) => [
                     $definition->package,
                     $definition->version,
                     ucfirst($definition->type()),
+                    $this->isInstalled($definition->package) ? '✓ Installed' : '—',
                     $this->highlights($definition),
                 ],
                 $definitions
@@ -140,5 +142,10 @@ final class PluginListCommand extends Command
         }
 
         return $parts === [] ? '—' : implode(', ', $parts);
+    }
+
+    private function isInstalled(string $package): bool
+    {
+        return InstalledVersions::isInstalled($package);
     }
 }
