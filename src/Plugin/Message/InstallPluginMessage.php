@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sylius\StoreAssemblerBundle\Message;
+namespace Sylius\StoreAssemblerBundle\Plugin\Message;
 
 final class InstallPluginMessage
 {

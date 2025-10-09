@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sylius\StoreAssemblerBundle\Service;
+namespace Sylius\StoreAssemblerBundle\Plugin\Service;
 
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Contracts\Cache\ItemInterface;

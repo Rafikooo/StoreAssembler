@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Sylius\StoreAssemblerBundle\MessageHandler;
+namespace Sylius\StoreAssemblerBundle\Plugin\MessageHandler;
 
+use Psr\Log\LoggerInterface;
+use Sylius\StoreAssemblerBundle\Plugin\Message\InstallPluginMessage;
+use Sylius\StoreAssemblerBundle\Plugin\Service\InstallationStateManager;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Process\Process;
-use Sylius\StoreAssemblerBundle\Message\InstallPluginMessage;
-use Sylius\StoreAssemblerBundle\Service\InstallationStateManager;
-use Psr\Log\LoggerInterface;
 
 #[AsMessageHandler]
 final class InstallPluginMessageHandler

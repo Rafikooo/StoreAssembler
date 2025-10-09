@@ -154,8 +154,13 @@ src/
 │   │   ├── InstallInteractiveCommand.php
 │   │   ├── ListCommand.php
 │   │   └── PrepareCommand.php
+│   ├── Message/                     # Async messages
+│   │   └── InstallPluginMessage.php
+│   ├── MessageHandler/              # Async handlers
+│   │   └── InstallPluginMessageHandler.php
 │   ├── Service/                     # Domain services
 │   │   ├── ComposerMetadataResolver.php
+│   │   ├── InstallationStateManager.php
 │   │   └── PluginDefinitionResolver.php
 │   ├── Step/                        # Workflow steps (14 steps)
 │   │   ├── PrepareStepInterface.php
@@ -187,12 +192,6 @@ src/
 ├── DependencyInjection/
 │   └── Compiler/
 │       └── WorkflowDefinitionPass.php
-├── Message/                         # Async support
-│   └── InstallPlugin.php
-├── MessageHandler/
-│   └── InstallPluginMessageHandler.php
-├── Service/
-│   └── InstallationStateManager.php
 └── Util/
     └── ManifestLocator.php
 ```
